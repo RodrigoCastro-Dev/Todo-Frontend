@@ -2,17 +2,21 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { TasksResponse } from '../components/Home'
 
-const url = "http://localhost:3000/graphql"
+const API_URL = import.meta.env.VITE_API_URL as string;
+const ACCESS_TOKEN = import.meta.env.VITE_ACCESS_TOKEN as string;
 
 const graphqlRequest = async (variables = {}) => {
   const query = `query { tasks { id title completed } }`;
 
   try {
-    const response = await axios.post(url, {
+    const response = await axios.post(API_URL, {
       query,
       variables
     }, {
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiIxN2EzYmNmNS1lOTcxLTRjMTQtYjhiNS04NjI4OTM0MzhjM2EiLCJzdWIiOiIxIiwic2NwIjoidXNlciIsImF1ZCI6bnVsbCwiaWF0IjoxNzQxNTQ5NTM0LCJleHAiOjE3NDE2MzU5MzR9.lOjZIJmLO6yUeTYPPwTxImTJe6BO3mf4OpO34ycIxnY" }
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${ACCESS_TOKEN}`,
+      },
     });
 
     return response.data;

@@ -1,15 +1,15 @@
-import { PlusCircle } from '@phosphor-icons/react'
-import { useEffect, useState } from 'react'
+import { PlusCircle } from '@phosphor-icons/react';
+import { useEffect, useState } from 'react';
 
-import styles from './css/Home.module.css'
+import styles from './css/Home.module.css';
 
-import { Button } from './Button'
-import { Input } from './Input'
-import { Empty } from './List/Empty'
-import { Header as ListHeader } from './List/Header'
-import { Item } from './List/Item'
-import { getTasks } from '../api/get-tasks'
-import { postTask } from '../api/post-task'
+import { Button } from './Button';
+import { Input } from './Input';
+import { Empty } from './List/Empty';
+import { Header as ListHeader } from './List/Header';
+import { Item } from './List/Item';
+import { getTasks } from '../api/get-tasks';
+import { usePostTask } from '../api/post-task';
 
 export interface ITask {
   id: number;
@@ -28,54 +28,57 @@ export function Home() {
   const Tasks = data?.data?.tasks || [];
 
   useEffect(() => {
-    setTasks(Tasks)
-  }, [Tasks])
+    setTasks(Tasks);
+  }, [Tasks]);
 
-  const [tasks, setTasks] = useState(Tasks)
-  const [inputValue, setInputValue] = useState('')
+  const [tasks, setTasks] = useState(Tasks);
+  const [inputValue, setInputValue] = useState('');
   const checkedTasksCounter = tasks?.reduce((prevValue, currentTask) => {
     if (currentTask.completed) {
-      return prevValue + 1
+      return prevValue + 1;
     }
 
-    return prevValue
-  }, 0)
+    return prevValue;
+  }, 0);
+
+  const { mutate: postTask } = usePostTask();
 
   function handleAddTask() {
     if (!inputValue) {
-      alert('Add a task before creating')
+      alert('Add a task before creating');
+      return;
     }
 
     const newTask: ITask = {
       id: new Date().getTime(),
       title: inputValue,
       completed: false,
-    }
+    };
 
     postTask(newTask);
-    setInputValue('')
+    setInputValue('');
   }
 
   function handleRemoveTask(id: number) {
-    const filteredTasks = tasks.filter((task) => task.id !== id)
+    const filteredTasks = tasks.filter((task) => task.id !== id);
 
     if (!confirm('Delete Task?')) {
-      return
+      return;
     }
 
-    setTasks(filteredTasks)
+    setTasks(filteredTasks);
   }
 
   function handleToggleTask({ id, value }: { id: number; value: boolean }) {
     const updatedTasks = tasks.map((task) => {
       if (task.id === id) {
-        return { ...task, completed: value }
+        return { ...task, completed: value };
       }
 
-      return { ...task }
-    })
+      return { ...task };
+    });
 
-    setTasks(updatedTasks)
+    setTasks(updatedTasks);
   }
 
   return (
@@ -102,5 +105,5 @@ export function Home() {
         )}
       </div>
     </section>
-  )
+  );
 }

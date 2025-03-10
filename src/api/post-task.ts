@@ -2,36 +2,33 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { ITask } from "../components/Home";
 
-const url = "http://localhost:3000/graphql"
+const ACCESS_TOKEN = import.meta.env.VITE_ACCESS_TOKEN as string;
+const API_URL = import.meta.env.VITE_API_URL as string;
 
 const createTask = async (task: ITask) => {
-  const response = await axios.post(url,
+  const response = await axios.post(
+    API_URL,
     {
-      query: `
-        mutation CreateTask($title: String!, $completed: Boolean!) {
-          createTask(input: { title: $title, completed: $completed }) {
-            task { id title completed } 
-          } 
-        }`,
-      variables: task,
+      query: `mutation { createTask(input: { title: \"${task.title}\", description: \"${task.title}\", completed: ${task.completed} }) { task { id title description completed } } }`,
     },
     {
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer YOUR_ACCESS_TOKEN`
-      }
+        "Authorization": `Bearer ${ACCESS_TOKEN}`,
+      },
     }
   );
 
   return response.data.data.createTask.task;
 };
 
-export const postTask = (task: ITask) => {
+export const usePostTask = () => {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: () => createTask(task),
+    mutationFn: createTask,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['todos'] })
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
     },
   });
-}
+};
