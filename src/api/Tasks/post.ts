@@ -1,22 +1,15 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
-import { ITask } from "../components/Home";
-
-const ACCESS_TOKEN = import.meta.env.VITE_ACCESS_TOKEN as string;
-const API_URL = import.meta.env.VITE_API_URL as string;
+import { ITask } from "../../components/Home";
+import { API_URL } from "..";
+import { toast } from "react-toastify";
+import api from "../axiosInstance";
 
 const createTask = async (task: ITask) => {
-  const response = await axios.post(
-    API_URL,
+  const response = await api.post(
+    `${API_URL}/graphql`,
     {
       query: `mutation { createTask(input: { title: \"${task.title}\", description: \"${task.title}\", completed: ${task.completed} }) { task { id title description completed } } }`,
     },
-    {
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${ACCESS_TOKEN}`,
-      },
-    }
   );
 
   return response.data.data.createTask.task;
@@ -29,6 +22,7 @@ export const usePostTask = () => {
     mutationFn: createTask,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] });
+      toast.success("Task created!");
     },
   });
 };

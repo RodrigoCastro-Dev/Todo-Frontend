@@ -8,13 +8,15 @@ import { Input } from './Input';
 import { Empty } from './List/Empty';
 import { Header as ListHeader } from './List/Header';
 import { Item } from './List/Item';
-import { getTasks } from '../api/get-tasks';
-import { usePostTask } from '../api/post-task';
+import { getTasks } from '../api/Tasks/get';
+import { usePostTask } from '../api/Tasks/post';
+import { useDeleteTask } from '../api/Tasks/delete';
 
 export interface ITask {
-  id: number;
+  id?: number;
   title: string;
   completed: boolean;
+  description: string;
 }
 
 export interface TasksResponse {
@@ -42,6 +44,7 @@ export function Home() {
   }, 0);
 
   const { mutate: postTask } = usePostTask();
+  const { mutate: deleteTask } = useDeleteTask();
 
   function handleAddTask() {
     if (!inputValue) {
@@ -50,8 +53,9 @@ export function Home() {
     }
 
     const newTask: ITask = {
-      id: new Date().getTime(),
+      id: undefined,
       title: inputValue,
+      description: inputValue,
       completed: false,
     };
 
@@ -61,9 +65,8 @@ export function Home() {
 
   function handleRemoveTask(id: number) {
     const filteredTasks = tasks.filter((task) => task.id !== id);
-
-    if (!confirm('Delete Task?')) {
-      return;
+    if (confirm('Delete Task?')) {
+      deleteTask(id);
     }
 
     setTasks(filteredTasks);
