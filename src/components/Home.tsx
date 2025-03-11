@@ -11,6 +11,7 @@ import { Item } from './List/Item';
 import { getTasks } from '../api/Tasks/get';
 import { usePostTask } from '../api/Tasks/post';
 import { useDeleteTask } from '../api/Tasks/delete';
+import { useUpdateTask } from '../api/Tasks/update';
 
 export interface ITask {
   id?: number;
@@ -45,6 +46,7 @@ export function Home() {
 
   const { mutate: postTask } = usePostTask();
   const { mutate: deleteTask } = useDeleteTask();
+  const { mutate: updateTask } = useUpdateTask();
 
   function handleAddTask() {
     if (!inputValue) {
@@ -75,9 +77,9 @@ export function Home() {
   function handleToggleTask({ id, value }: { id: number; value: boolean }) {
     const updatedTasks = tasks.map((task) => {
       if (task.id === id) {
+        updateTask({ ...task, completed: value });
         return { ...task, completed: value };
       }
-
       return { ...task };
     });
 

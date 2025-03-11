@@ -1,6 +1,6 @@
 import { Trash, Check } from '@phosphor-icons/react'
 import styles from './css/Item.module.css'
-import { ITask } from '../../hooks/useTasks'
+import { ITask } from '../Home'
 
 interface Props {
   data: ITask
@@ -10,11 +10,15 @@ interface Props {
 
 export function Item({ data, removeTask, toggleTaskStatus }: Props) {
   function handleTaskToggle() {
-    toggleTaskStatus({ id: data.id, value: !data.completed })
+    if (data.id !== undefined) {
+      toggleTaskStatus({ id: data.id, value: !data.completed })
+    }
   }
 
   function handleRemove() {
-    removeTask(data.id)
+    if (data.id !== undefined) {
+      removeTask(data.id)
+    }
   }
 
   const checkboxCheckedClassname = data.completed

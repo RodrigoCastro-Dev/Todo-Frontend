@@ -17,8 +17,7 @@ const deleteTask = async (task_id: number) => {
 export const useDeleteTask = () => {
   return useMutation({
     mutationFn: deleteTask,
-    onSuccess: (data) => {
-      console.log("Task deleted!", data);
+    onSuccess: () => {
       toast.success("Task deleted!");
     },
   });
