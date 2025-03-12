@@ -1,4 +1,4 @@
-import { PlusCircle } from '@phosphor-icons/react';
+import { MagnifyingGlass, PlusCircle } from '@phosphor-icons/react';
 import { useEffect, useState } from 'react';
 
 import styles from './css/Home.module.css';
@@ -12,12 +12,14 @@ import { getTasks } from '../api/Tasks/get';
 import { usePostTask } from '../api/Tasks/post';
 import { useDeleteTask } from '../api/Tasks/delete';
 import { useUpdateTask } from '../api/Tasks/update';
+import * as z from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
 
 export interface ITask {
   id?: number;
-  title: string;
-  completed: boolean;
   description: string;
+  completed: boolean;
 }
 
 export interface TasksResponse {
@@ -25,28 +27,69 @@ export interface TasksResponse {
     tasks: ITask[];
   };
 }
+const searchFormSchema = z.object({
+  query: z.string(),
+})
 
+type SearchFormInputs = z.infer<typeof searchFormSchema>
 export function Home() {
   const { data } = getTasks();
   const Tasks = data?.data?.tasks || [];
 
-  useEffect(() => {
-    setTasks(Tasks);
-  }, [Tasks]);
-
   const [tasks, setTasks] = useState(Tasks);
   const [inputValue, setInputValue] = useState('');
-  const checkedTasksCounter = tasks?.reduce((prevValue, currentTask) => {
-    if (currentTask.completed) {
-      return prevValue + 1;
-    }
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
 
-    return prevValue;
+  useEffect(() => {
+    if (data?.data?.tasks) {
+      filterTasks(searchQuery, filterStatus);
+    }
+  }, [data]);
+
+  const checkedTasksCounter = tasks?.reduce((prevValue, currentTask) => {
+    return currentTask.completed ? prevValue + 1 : prevValue;
   }, 0);
 
   const { mutate: postTask } = usePostTask();
   const { mutate: deleteTask } = useDeleteTask();
   const { mutate: updateTask } = useUpdateTask();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<SearchFormInputs>({
+    resolver: zodResolver(searchFormSchema),
+  });
+
+  function filterTasks(query: string, status: string) {
+    let filteredTasks = Tasks;
+
+    if (query) {
+      filteredTasks = filteredTasks.filter((task) =>
+        task.description.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+
+    if (status === 'completed') {
+      filteredTasks = filteredTasks.filter((task) => task.completed);
+    } else if (status === 'notCompleted') {
+      filteredTasks = filteredTasks.filter((task) => !task.completed);
+    }
+
+    setTasks(filteredTasks);
+  }
+
+  async function handleSearchTasks(data: SearchFormInputs) {
+    setSearchQuery(data.query);
+    filterTasks(data.query, filterStatus);
+  }
+
+  function handleCompletedFilter(status: string) {
+    setFilterStatus(status);
+    filterTasks(searchQuery, status);
+  }
 
   function handleAddTask() {
     if (!inputValue) {
@@ -54,36 +97,41 @@ export function Home() {
       return;
     }
 
-    const newTask: ITask = {
-      id: undefined,
-      title: inputValue,
-      description: inputValue,
-      completed: false,
-    };
-
+    const newTask: ITask = { id: undefined, description: inputValue, completed: false };
     postTask(newTask);
     setInputValue('');
   }
 
   function handleRemoveTask(id: number) {
-    const filteredTasks = tasks.filter((task) => task.id !== id);
     if (confirm('Delete Task?')) {
       deleteTask(id);
     }
-
-    setTasks(filteredTasks);
+    setTasks(tasks.filter((task) => task.id !== id));
   }
 
   function handleToggleTask({ id, value }: { id: number; value: boolean }) {
-    const updatedTasks = tasks.map((task) => {
-      if (task.id === id) {
-        updateTask({ ...task, completed: value });
-        return { ...task, completed: value };
-      }
-      return { ...task };
-    });
+    const updatedTasks = tasks.map((task) =>
+      task.id === id ? { ...task, completed: value } : task
+    );
 
+    const taskToUpdate = tasks.find((task) => task.id === id);
     setTasks(updatedTasks);
+    if (taskToUpdate) {
+      updateTask({ ...taskToUpdate, completed: value });
+    }
+  }
+
+  function handleTaskDescription({ id, description }: { id: number; description: string }) {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === id ? { ...task, description } : task
+      )
+    );
+
+    const taskToUpdate = tasks.find((task) => task.id === id);
+    if (taskToUpdate) {
+      updateTask({ ...taskToUpdate, description });
+    }
   }
 
   return (
@@ -96,13 +144,32 @@ export function Home() {
         </Button>
       </div>
 
+      <form className={styles.searchForm} onSubmit={handleSubmit(handleSearchTasks)}>
+        <input
+          type="text"
+          placeholder="Search tasks..."
+          {...register('query')}
+        />
+
+        <select className={styles.select} onChange={(e) => handleCompletedFilter(e.target.value)}>
+          <option value="">All tasks</option>
+          <option value="completed">Completed</option>
+          <option value="notCompleted">Not completed</option>
+        </select>
+
+        <button className={styles.searchButton} type="submit" disabled={isSubmitting}>
+          Search
+          <MagnifyingGlass size={20} />
+        </button>
+      </form>
+
       <div className={styles.tasksList}>
         <ListHeader tasksCounter={tasks.length} checkedTasksCounter={checkedTasksCounter} />
 
         {tasks.length > 0 ? (
           <div>
             {tasks.map((task) => (
-              <Item key={task.id} data={task} removeTask={handleRemoveTask} toggleTaskStatus={handleToggleTask} />
+              <Item key={task.id} data={task} removeTask={handleRemoveTask} toggleTaskStatus={handleToggleTask} updateTaskDescription={handleTaskDescription} />
             ))}
           </div>
         ) : (

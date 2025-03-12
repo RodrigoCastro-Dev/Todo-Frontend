@@ -58,15 +58,20 @@
   background-color: var(--purple);
 }
 
-.paragraph {
-  font-size: 0.875rem;
+.input {
+  font-size: 0.950rem;
   line-height: 140%;
   user-select: none;
-
+  background: var(--gray-500);
   transition: 0.2s all;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: var(--gray-100);
+  padding: 5px;
+  min-width: 36rem;
 }
 
-.paragraph-checked {
+.input-checked {
   text-decoration: line-through;
   color: var(--gray-300);
 }
@@ -77,11 +82,12 @@
   border-radius: 4px;
 
   padding: 5px 4px 2px 4px;
-  
+
   transition: 0.2s background-color;
 }
 
-.container button line, .container button path {
+.container button line,
+.container button path {
   transition: 0.2s fill;
 }
 
@@ -89,6 +95,7 @@
   background-color: var(--gray-400);
 }
 
-.container button:hover line, .container button:hover path {
+.container button:hover line,
+.container button:hover path {
   fill: var(--danger);
 }

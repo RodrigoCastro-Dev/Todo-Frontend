@@ -5,7 +5,7 @@ import { API_URL } from "..";
 import api from "../axiosInstance";
 
 const graphqlRequest = async (variables = {}) => {
-  const query = `query { tasks { id title completed } }`;
+  const query = `query { tasks { id description completed } }`;
 
   try {
     const response = await api.post(`${API_URL}/graphql`, {

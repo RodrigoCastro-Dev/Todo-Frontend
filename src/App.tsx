@@ -8,11 +8,9 @@ const queryClient = new QueryClient();
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <main>
-        <ToastContainer />
-        <Header />
-        <Home />
-      </main>
+      <ToastContainer />
+      <Header />
+      <Home />
     </QueryClientProvider>
   )
 }

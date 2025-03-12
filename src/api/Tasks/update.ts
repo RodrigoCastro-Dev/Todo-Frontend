@@ -8,7 +8,7 @@ const updateTask = async (task: ITask) => {
   const response = await api.post(
     `${API_URL}/graphql`,
     {
-      query: `mutation { updateTask(input: { id: \"${task.id}\", description: \"${task.title}\", completed: ${task.completed} }) { task { id title description completed } } }`,
+      query: `mutation { updateTask(input: { id: \"${task.id}\", description: \"${task.description}\", completed: ${task.completed} }) { task { id description completed } } }`,
     },
   );
 
