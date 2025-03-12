@@ -29,17 +29,23 @@ export interface TasksResponse {
 }
 const searchFormSchema = z.object({
   query: z.string(),
+  completed: z.string(),
 })
-
 type SearchFormInputs = z.infer<typeof searchFormSchema>
-export function Home() {
-  const { data } = getTasks();
-  const Tasks = data?.data?.tasks || [];
 
-  const [tasks, setTasks] = useState(Tasks);
+export function Home() {
+  const { mutate: postTask } = usePostTask();
+  const { mutate: deleteTask } = useDeleteTask();
+  const { mutate: updateTask } = useUpdateTask();
+
   const [inputValue, setInputValue] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+
+  const { data } = getTasks(searchQuery, filterStatus);
+  const Tasks = data?.data?.tasks || [];
+
+  const [tasks, setTasks] = useState(Tasks);
 
   useEffect(() => {
     if (data?.data?.tasks) {
@@ -51,10 +57,6 @@ export function Home() {
     return currentTask.completed ? prevValue + 1 : prevValue;
   }, 0);
 
-  const { mutate: postTask } = usePostTask();
-  const { mutate: deleteTask } = useDeleteTask();
-  const { mutate: updateTask } = useUpdateTask();
-
   const {
     register,
     handleSubmit,
@@ -62,6 +64,13 @@ export function Home() {
   } = useForm<SearchFormInputs>({
     resolver: zodResolver(searchFormSchema),
   });
+
+
+  async function handleSearchTasks(data: SearchFormInputs) {
+    setFilterStatus(data.completed);
+    setSearchQuery(data.query);
+    filterTasks(data.query, filterStatus);
+  }
 
   function filterTasks(query: string, status: string) {
     let filteredTasks = Tasks;
@@ -79,16 +88,6 @@ export function Home() {
     }
 
     setTasks(filteredTasks);
-  }
-
-  async function handleSearchTasks(data: SearchFormInputs) {
-    setSearchQuery(data.query);
-    filterTasks(data.query, filterStatus);
-  }
-
-  function handleCompletedFilter(status: string) {
-    setFilterStatus(status);
-    filterTasks(searchQuery, status);
   }
 
   function handleAddTask() {
@@ -151,7 +150,10 @@ export function Home() {
           {...register('query')}
         />
 
-        <select className={styles.select} onChange={(e) => handleCompletedFilter(e.target.value)}>
+        <select id='completed'
+          {...register("completed")}
+          className={styles.select}
+        >
           <option value="">All tasks</option>
           <option value="completed">Completed</option>
           <option value="notCompleted">Not completed</option>
