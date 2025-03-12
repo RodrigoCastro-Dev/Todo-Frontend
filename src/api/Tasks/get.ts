@@ -40,5 +40,6 @@ export const getTasks = (description: string, completed: string) => {
   return useQuery<TasksResponse>({
     queryKey: ["todos", description, completed],
     queryFn: () => graphqlRequest({ description, completed }),
+    staleTime: 1000 * 60 * 5,
   });
 };
