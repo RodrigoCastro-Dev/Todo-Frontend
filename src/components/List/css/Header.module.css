@@ -1,7 +1,6 @@
 .container {
   display: flex;
   flex: 1;
-
   align-items: center;
   justify-content: space-between;
 }
@@ -10,7 +9,6 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-
   font-weight: bold;
 }
 
@@ -29,9 +27,7 @@
 .container aside span {
   padding: 2px 8px;
   border-radius: 16px;
-
   font-size: 0.75rem;
-
   color: var(--gray-200);
   background-color: var(--gray-400);
 }

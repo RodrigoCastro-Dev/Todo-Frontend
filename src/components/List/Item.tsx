@@ -8,25 +8,36 @@ interface Props {
   data: ITask
   removeTask: (id: number) => void
   toggleTaskStatus: ({ id, value }: { id: number; value: boolean }) => void
-  updateTaskDescription: ({ id, description }: { id: number; description: string }) => void
+  updateTaskDescription: ({
+    id,
+    description,
+  }: {
+    id: number
+    description: string
+  }) => void
 }
 
-export function Item({ data, removeTask, toggleTaskStatus, updateTaskDescription }: Props) {
-  const [searchTerm, setSearchTerm] = useState(data.description);
-  const debouncedSearchTerm = useDebounce(searchTerm, 1000);
+export function Item({
+  data,
+  removeTask,
+  toggleTaskStatus,
+  updateTaskDescription,
+}: Props) {
+  const [searchTerm, setSearchTerm] = useState(data.description)
+  const debouncedSearchTerm = useDebounce(searchTerm, 1000)
 
-  const isFirstRender = useRef(true);
+  const isFirstRender = useRef(true)
 
   useEffect(() => {
     if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
+      isFirstRender.current = false
+      return
     }
 
     if (data.id !== undefined) {
-      updateTaskDescription({ id: data.id, description: debouncedSearchTerm });
+      updateTaskDescription({ id: data.id, description: debouncedSearchTerm })
     }
-  }, [debouncedSearchTerm]);
+  }, [debouncedSearchTerm])
 
   function handleTaskToggle() {
     if (data.id !== undefined) {
@@ -41,26 +52,33 @@ export function Item({ data, removeTask, toggleTaskStatus, updateTaskDescription
   }
 
   function handleTaskInput(description: string) {
-    setSearchTerm(description);
+    setSearchTerm(description)
   }
 
-  const checkboxCheckedClassname = data.completed ? styles['checkbox-checked'] : styles['checkbox-unchecked']
+  const checkboxCheckedClassname = data.completed
+    ? styles['checkbox-checked']
+    : styles['checkbox-unchecked']
   const inputCheckedClassname = data.completed ? styles['input-checked'] : ''
 
   return (
     <div className={styles.container}>
       <div>
         <label htmlFor="checkbox">
-          <span className={`${styles.checkbox} ${checkboxCheckedClassname}`} onClick={handleTaskToggle}>
+          <span
+            className={`${styles.checkbox} ${checkboxCheckedClassname}`}
+            onClick={handleTaskToggle}
+          >
             <input readOnly type="checkbox" checked={data.completed} />
             {data.completed && <Check size={12} />}
           </span>
           <input
-            name='search'
+            name="search"
             type="text"
             className={`${styles.input} ${inputCheckedClassname}`}
             value={searchTerm}
-            onChange={(e) => { handleTaskInput(e.target.value) }}
+            onChange={(e) => {
+              handleTaskInput(e.target.value)
+            }}
           />
         </label>
       </div>
