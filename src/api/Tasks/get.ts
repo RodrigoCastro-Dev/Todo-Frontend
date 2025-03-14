@@ -1,9 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
-import { TasksResponse } from '../../components/Home'
 import { toast } from 'react-toastify'
 import { API_URL } from '..'
 import api from '../axiosInstance'
-
+import { ITask } from '../../components/Home'
+interface TasksResponse {
+  data: {
+    tasks: ITask[]
+  }
+}
 const graphqlRequest = async (variables: {
   description: string
   completed: string

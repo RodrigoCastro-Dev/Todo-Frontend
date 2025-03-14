@@ -1,5 +1,8 @@
 import { MagnifyingGlass, PlusCircle } from '@phosphor-icons/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 
 import styles from './css/Home.module.css'
 
@@ -8,13 +11,12 @@ import { Input } from './Input'
 import { Empty } from './List/Empty'
 import { Header as ListHeader } from './List/Header'
 import { Item } from './List/Item'
+import { Loading } from './List/Loading'
+
 import { getTasks } from '../api/Tasks/get'
 import { usePostTask } from '../api/Tasks/post'
 import { useDeleteTask } from '../api/Tasks/delete'
 import { useUpdateTask } from '../api/Tasks/update'
-import * as z from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
 
 export interface ITask {
   id?: number
@@ -22,11 +24,6 @@ export interface ITask {
   completed: boolean
 }
 
-export interface TasksResponse {
-  data: {
-    tasks: ITask[]
-  }
-}
 const searchFormSchema = z.object({
   query: z.string(),
   completed: z.string(),
@@ -41,104 +38,87 @@ export function Home() {
   const [inputValue, setInputValue] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
+  const [fetchingApi, setFetchingApi] = useState(true)
 
-  const { data } = getTasks(searchQuery, filterStatus)
-  const Tasks = data?.data?.tasks || []
-
-  const [tasks, setTasks] = useState(Tasks)
+  const { data, isFetching, status } = getTasks(searchQuery, filterStatus)
+  const tasks = data?.data?.tasks || []
 
   useEffect(() => {
-    if (data?.data?.tasks) {
-      filterTasks(searchQuery, filterStatus)
+    if (!isFetching) {
+      setFetchingApi(false)
     }
-  }, [data])
+  }, [isFetching])
 
-  const checkedTasksCounter = tasks?.reduce((prevValue, currentTask) => {
-    return currentTask.completed ? prevValue + 1 : prevValue
-  }, 0)
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((task) => {
+      const matchesQuery = searchQuery
+        ? task.description.toLowerCase().includes(searchQuery.toLowerCase())
+        : true
 
-  const {
-    register,
-    handleSubmit,
-    formState: { isSubmitting },
-  } = useForm<SearchFormInputs>({
+      const matchesStatus =
+        filterStatus === 'completed'
+          ? task.completed
+          : filterStatus === 'notCompleted'
+          ? !task.completed
+          : true
+
+      return matchesQuery && matchesStatus
+    })
+  }, [tasks, searchQuery, filterStatus])
+
+  const checkedTasksCounter = useMemo(
+    () => filteredTasks.filter((task) => task.completed).length,
+    [filteredTasks],
+  )
+
+  const { register, handleSubmit } = useForm<SearchFormInputs>({
     resolver: zodResolver(searchFormSchema),
   })
 
-  async function handleSearchTasks(data: SearchFormInputs) {
-    setFilterStatus(data.completed)
-    setSearchQuery(data.query)
-    filterTasks(data.query, filterStatus)
-  }
-
-  function filterTasks(query: string, status: string) {
-    let filteredTasks = Tasks
-
-    if (query) {
-      filteredTasks = filteredTasks.filter((task) =>
-        task.description.toLowerCase().includes(query.toLowerCase()),
-      )
-    }
-
-    if (status === 'completed') {
-      filteredTasks = filteredTasks.filter((task) => task.completed)
-    } else if (status === 'notCompleted') {
-      filteredTasks = filteredTasks.filter((task) => !task.completed)
-    }
-
-    setTasks(filteredTasks)
+  function handleSearchTasks({ query, completed }: SearchFormInputs) {
+    setSearchQuery(query)
+    setFilterStatus(completed)
+    status == 'success' ? setFetchingApi(false) : setFetchingApi(true)
   }
 
   function handleAddTask() {
-    if (!inputValue) {
-      alert('Add a task before creating')
+    if (!inputValue.trim()) {
+      alert('Please enter a task before adding')
       return
     }
 
-    const newTask: ITask = {
-      id: undefined,
-      description: inputValue,
-      completed: false,
-    }
-    postTask(newTask)
+    postTask({ description: inputValue, completed: false })
+    setFetchingApi(true)
     setInputValue('')
   }
+  console.log('last', fetchingApi)
 
   function handleRemoveTask(id: number) {
-    if (confirm('Delete Task?')) {
+    if (window.confirm('Delete Task?')) {
+      console.log('first', fetchingApi)
       deleteTask(id)
-    }
-    setTasks(tasks.filter((task) => task.id !== id))
-  }
-
-  function handleToggleTask({ id, value }: { id: number; value: boolean }) {
-    const updatedTasks = tasks.map((task) =>
-      task.id === id ? { ...task, completed: value } : task,
-    )
-
-    const taskToUpdate = tasks.find((task) => task.id === id)
-    setTasks(updatedTasks)
-    if (taskToUpdate) {
-      updateTask({ ...taskToUpdate, completed: value })
+      setFetchingApi(true)
+      console.log('last', fetchingApi)
     }
   }
 
-  function handleTaskDescription({
+  function handleUpdateTaskDescription({
     id,
     description,
   }: {
     id: number
     description: string
   }) {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === id ? { ...task, description } : task,
-      ),
-    )
-
     const taskToUpdate = tasks.find((task) => task.id === id)
     if (taskToUpdate) {
       updateTask({ ...taskToUpdate, description })
+    }
+  }
+
+  function handleToggleTask({ id, value }: { id: number; value: boolean }) {
+    const taskToUpdate = tasks.find((task) => task.id === id)
+    if (taskToUpdate) {
+      updateTask({ ...taskToUpdate, completed: value })
     }
   }
 
@@ -149,22 +129,18 @@ export function Home() {
           onChange={(e) => setInputValue(e.target.value)}
           value={inputValue}
         />
-        <Button onClick={handleAddTask}>
+        <Button onClick={handleAddTask} disabled={fetchingApi}>
           Create
           <PlusCircle size={16} color="#f2f2f2" weight="bold" />
         </Button>
       </div>
 
-      <form
-        className={styles.form}
-        onSubmit={handleSubmit(handleSearchTasks)}
-      >
+      <form className={styles.form} onSubmit={handleSubmit(handleSearchTasks)}>
         <input
           type="text"
           placeholder="Search tasks..."
           {...register('query')}
         />
-
         <select
           id="completed"
           {...register('completed')}
@@ -174,12 +150,7 @@ export function Home() {
           <option value="completed">Completed</option>
           <option value="notCompleted">Not completed</option>
         </select>
-
-        <button
-          className={styles.button}
-          type="submit"
-          disabled={isSubmitting}
-        >
+        <button className={styles.button} type="submit" disabled={fetchingApi}>
           Search
           <MagnifyingGlass size={20} />
         </button>
@@ -187,25 +158,25 @@ export function Home() {
 
       <div className={styles.list}>
         <ListHeader
-          tasksCounter={tasks.length}
+          tasksCounter={filteredTasks.length}
           checkedTasksCounter={checkedTasksCounter}
         />
-
-        {tasks.length > 0 ? (
+        {filteredTasks.length > 0 || status === 'pending' ? (
           <div>
-            {tasks.map((task) => (
+            {filteredTasks.map((task) => (
               <Item
                 key={task.id}
                 data={task}
                 removeTask={handleRemoveTask}
                 toggleTaskStatus={handleToggleTask}
-                updateTaskDescription={handleTaskDescription}
+                updateTaskDescription={handleUpdateTaskDescription}
               />
             ))}
           </div>
         ) : (
-          <Empty />
+          <Empty fetchingApi={fetchingApi} />
         )}
+        <Loading status={status} fetchingApi={fetchingApi} />
       </div>
     </section>
   )

@@ -5,9 +5,9 @@ type Props = React.DetailedHTMLProps<
   HTMLButtonElement
 >
 
-export function Button({ children, ...rest }: Props) {
+export function Button({ children, disabled, ...rest }: Props) {
   return (
-    <button {...rest} className={styles.container}>
+    <button {...rest} className={styles.container} disabled={disabled}>
       {children}
     </button>
   )

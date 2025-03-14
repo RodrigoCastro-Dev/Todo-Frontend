@@ -18,7 +18,7 @@ export const usePostTask = () => {
   return useMutation({
     mutationFn: createTask,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['todos'] })
+      queryClient.removeQueries()
       toast.success('Task created!')
     },
   })

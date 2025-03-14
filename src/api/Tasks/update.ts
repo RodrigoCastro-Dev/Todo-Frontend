@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ITask } from '../../components/Home'
 import { API_URL } from '..'
 import { toast } from 'react-toastify'
@@ -13,9 +13,12 @@ const updateTask = async (task: ITask) => {
 }
 
 export const useUpdateTask = () => {
+  const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: updateTask,
     onSuccess: () => {
+      queryClient.removeQueries()
       toast.success('Task updated!')
     },
   })

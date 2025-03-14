@@ -24,7 +24,7 @@ export function Item({
   updateTaskDescription,
 }: Props) {
   const [searchTerm, setSearchTerm] = useState(data.description)
-  const debouncedSearchTerm = useDebounce(searchTerm, 1000)
+  const debouncedInputTerm = useDebounce(searchTerm, 1000)
 
   const isFirstRender = useRef(true)
 
@@ -35,13 +35,14 @@ export function Item({
     }
 
     if (data.id !== undefined) {
-      updateTaskDescription({ id: data.id, description: debouncedSearchTerm })
+      updateTaskDescription({ id: data.id, description: debouncedInputTerm })
     }
-  }, [debouncedSearchTerm])
+  }, [debouncedInputTerm])
 
   function handleTaskToggle() {
     if (data.id !== undefined) {
       toggleTaskStatus({ id: data.id, value: !data.completed })
+      data.completed = !data.completed
     }
   }
 

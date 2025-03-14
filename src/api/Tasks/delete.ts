@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { API_URL } from '..'
 import { toast } from 'react-toastify'
 import api from '../axiosInstance'
@@ -12,10 +12,13 @@ const deleteTask = async (taskId: number) => {
 }
 
 export const useDeleteTask = () => {
+  const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: deleteTask,
     onSuccess: () => {
       toast.success('Task deleted!')
+      queryClient.removeQueries()
     },
   })
 }

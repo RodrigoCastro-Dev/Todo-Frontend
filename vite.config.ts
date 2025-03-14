@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   css: {
     modules: {
-      scopeBehaviour: "local",
-    }
-  }
+      scopeBehaviour: 'local',
+    },
+  },
 })

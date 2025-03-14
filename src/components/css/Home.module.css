@@ -40,9 +40,9 @@
   flex: 1;
   border-radius: 6px;
   background: var(--gray-500);
-  border-color: var(--gray-500);
   color: var(--gray-100);
   padding: 1rem;
+  border: 1px solid var(--gray-700);
 }
 
 .form input:focus {
@@ -65,6 +65,7 @@
   font-weight: bold;
   font-size: 0.875rem;
   transition: 0.2s;
+  cursor: pointer;
 }
 
 .button:hover {
@@ -76,9 +77,14 @@
   cursor: not-allowed;
 }
 
+.button:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 5px rgb(0 0 0 / 20%);
+}
+
 .select {
   background: var(--gray-500);
-  border: 0;
+  border: 1px solid var(--gray-700);
   border-radius: 6px;
   color: var(--gray-100);
   font-size: 0.950rem;

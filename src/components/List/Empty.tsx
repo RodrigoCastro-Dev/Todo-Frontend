@@ -1,13 +1,15 @@
 import styles from './css/Empty.module.css'
 
-export function Empty() {
-  return (
-    <div className={styles.container}>
-      <img src="/clipboard.png" alt="ícone de prancheta" />
-      <p>
-        <strong>No tasks have been created</strong>
-        Create some tasks and organize your to do items
-      </p>
-    </div>
-  )
+export function Empty({ fetchingApi }: { fetchingApi: boolean }) {
+  if (!fetchingApi) {
+    return (
+      <div className={styles.container}>
+        <img src="/clipboard.png" alt="ícone de prancheta" />
+        <p>
+          <strong>No tasks have been found</strong>
+          Organize your to do items!
+        </p>
+      </div>
+    )
+  }
 }
