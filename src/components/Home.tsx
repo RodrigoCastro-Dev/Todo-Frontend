@@ -31,9 +31,9 @@ const searchFormSchema = z.object({
 type SearchFormInputs = z.infer<typeof searchFormSchema>
 
 export function Home() {
-  const { mutate: postTask } = usePostTask()
-  const { mutate: deleteTask } = useDeleteTask()
-  const { mutate: updateTask } = useUpdateTask()
+  const { mutate: postTask, isPending: isPosting } = usePostTask()
+  const { mutate: deleteTask, isPending: isDeleting } = useDeleteTask()
+  const { mutate: updateTask, isPending: isUpdating } = useUpdateTask()
 
   const [inputValue, setInputValue] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
@@ -43,11 +43,10 @@ export function Home() {
   const { data, isFetching, status } = getTasks(searchQuery, filterStatus)
   const tasks = data?.data?.tasks || []
 
+  // Automatically update loading state based on API calls
   useEffect(() => {
-    if (!isFetching) {
-      setFetchingApi(false)
-    }
-  }, [isFetching])
+    setFetchingApi(isFetching || isPosting || isDeleting || isUpdating)
+  }, [isFetching, isPosting, isDeleting, isUpdating])
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
@@ -59,8 +58,8 @@ export function Home() {
         filterStatus === 'completed'
           ? task.completed
           : filterStatus === 'notCompleted'
-          ? !task.completed
-          : true
+            ? !task.completed
+            : true
 
       return matchesQuery && matchesStatus
     })
@@ -78,7 +77,6 @@ export function Home() {
   function handleSearchTasks({ query, completed }: SearchFormInputs) {
     setSearchQuery(query)
     setFilterStatus(completed)
-    status == 'success' ? setFetchingApi(false) : setFetchingApi(true)
   }
 
   function handleAddTask() {
@@ -88,17 +86,12 @@ export function Home() {
     }
 
     postTask({ description: inputValue, completed: false })
-    setFetchingApi(true)
     setInputValue('')
   }
-  console.log('last', fetchingApi)
 
   function handleRemoveTask(id: number) {
     if (window.confirm('Delete Task?')) {
-      console.log('first', fetchingApi)
       deleteTask(id)
-      setFetchingApi(true)
-      console.log('last', fetchingApi)
     }
   }
 

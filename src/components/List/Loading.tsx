@@ -9,7 +9,6 @@ export function Loading({
   fetchingApi: boolean
   status: string
 }) {
-  console.log(status)
   if (fetchingApi || status === 'pending') {
     return (
       <div className={styles.container}>
