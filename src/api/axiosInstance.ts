@@ -20,8 +20,17 @@ const getToken = async () => {
   const token = localStorage.getItem('access_token')
 
   if (!token) {
+    const userEmail = `user_${crypto.randomUUID()}@todolist.com`
+    const userPassword = crypto.randomUUID()
+
+    // Create a new user
+    await authApi.post('/signup', {
+      user: { email: userEmail, password: userPassword },
+    })
+
+    // Login with the new user
     const newToken = await authApi.post('/login', {
-      user: { email: AUTH_EMAIL, password: AUTH_PASSWORD },
+      user: { email: userEmail, password: userPassword },
     })
     localStorage.setItem('access_token', newToken.data.token)
     return newToken.data.token
