@@ -10,6 +10,7 @@ This is a React-based front-end application built with TypeScript, Vite, and mod
     -   Edit task descriptions
     -   Delete tasks
     -   Filter tasks by status and description
+-   **Unique User To-do List:** Uses Browser localStorage to save user sessions.
 -   **GraphQL API Integration:** Uses Axios to communicate with the backend.
 -   **State Management:** Utilizes React hooks for efficient state handling.
 -   **Request Caching:** Uses `useQuery` for automatic caching of repeated API requests.
