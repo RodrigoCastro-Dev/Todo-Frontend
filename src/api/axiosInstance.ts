@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { API_URL, AUTH_EMAIL, AUTH_PASSWORD } from '.'
+import { API_URL } from '.'
 
 const api = axios.create({
   baseURL: API_URL,
